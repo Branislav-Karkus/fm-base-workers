@@ -5,10 +5,10 @@ import os
 from frinx_conductor_workers.frinx_rest import conductor_headers
 from frinx_conductor_workers.frinx_rest import resource_manager_url_base
 from jinja2 import Template
-from logging_helpers import logging_handler
+from frinx_conductor_workers.logging_helpers import logging_handler
 from python_graphql_client import GraphqlClient
-from util import completed_response_with_logs
-from util import failed_response_with_logs
+from frinx_conductor_workers.util import completed_response_with_logs
+from frinx_conductor_workers.util import failed_response_with_logs
 
 log = logging.getLogger(__name__)
 
