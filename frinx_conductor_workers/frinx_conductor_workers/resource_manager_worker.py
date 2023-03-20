@@ -162,8 +162,8 @@ query_capacity_template = Template(
 
 query_resource_by_alt_id_template = Template(
     """
-    query QueryResourcesByAltId($poolId: ID, $input: Map!, $first: Int, $last: Int, $after: String) {
-    QueryResourcesByAltId(input: $input, poolId: $poolId, first: $first, last: $last, after: $after) {
+    query QueryResourcesByAltId($poolId: ID, $input: Map!, $first: Int, $last: Int, $after: String, $before: String) {
+    QueryResourcesByAltId(input: $input, poolId: $poolId, first: $first, last: $last, after: $after, before: $before) {
         edges {
             cursor {
                 ID
@@ -835,8 +835,6 @@ def update_alt_id_for_resource(task, logs):
         return failed_response_with_logs(logs, {"result": {"error": "No alternative id"}})
     variables = {"pool_id": pool_id, "input": resource_properties, "alternative_id": alternative_id}
     if alternative_id is not None and len(alternative_id) > 0:
-        alternative_id = alternative_id.replace("'", '"')
-        alternative_id = json.loads(alternative_id)
         variables.update({"alternative_id": alternative_id})
     if resource_properties is not None and len(resource_properties) > 0:
         variables.update({"input": resource_properties})
@@ -1054,6 +1052,16 @@ def query_resource_by_alt_id(task, logs):
     first = task["inputData"]["first"] if "first" in task["inputData"] else None
     last = task["inputData"]["last"] if "last" in task["inputData"] else None
     after = task["inputData"]["after"] if "after" in task["inputData"] else None
+    before = task["inputData"]["before"] if "before" in task["inputData"] else None
+    if (after is not None) and (before is not None):
+        return failed_response_with_logs(
+            logs,
+            {
+                "result": {
+                    "error": "Data cannot be extracted with the parameter after and before at the same request"
+                }
+            },
+        )
     body = query_resource_by_alt_id_template.render()
     alternative_id = json.loads(alternative_id)
     variables = {
@@ -1062,6 +1070,7 @@ def query_resource_by_alt_id(task, logs):
         "first": first,
         "last": last,
         "after": after,
+        "before": before,
     }
     body = body.replace("\n", "").replace("\\", "")
     log.info("Sending graphql variables: %s\n with query: %s" % (variables, body))
